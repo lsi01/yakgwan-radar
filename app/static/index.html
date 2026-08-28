@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>약관 레이더</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --ink: #1a1c1f; --muted: #6b7280;
+    --line: #e5e7eb; --brand: #1f5fd6; --high: #d64545; --mid: #d99a1f; --low: #3a8a5f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-size: 1rem; font-family: system-ui, "Apple SD Gothic Neo", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.6; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; margin-bottom: 16px; }
+  label { font-weight: 600; font-size: .9rem; }
+  input[type=file], select { width: 100%; margin-top: 6px; padding: 10px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  button { background: var(--brand); color: #fff; border: 0; border-radius: 8px;
+    padding: 11px 18px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 200px; }
+  .score-big { font-size: 2.4rem; font-weight: 700; }
+  .bars { display: grid; gap: 8px; margin-top: 12px; }
+  .bar-row { display: grid; grid-template-columns: 90px 1fr 40px; gap: 8px; align-items: center; font-size: .85rem; }
+  .bar { height: 10px; background: var(--line); border-radius: 6px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--brand); }
+  .finding { border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 10px; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; color: #fff; }
+  .t-높음 { background: var(--high); } .t-중간 { background: var(--mid); } .t-낮음 { background: var(--low); }
+  .finding .fhead { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .finding .cref { font-weight: 700; font-size: .9rem; }
+  .finding h4 { margin: 8px 0 4px; font-size: .98rem; }
+  .finding .quote { margin: 6px 0; padding: 8px 12px; border-left: 3px solid var(--brand);
+    background: #f0f4fb; font-size: .88rem; color: #333; white-space: pre-wrap; }
+  .finding .plain { color: #333; }
+  .finding .ev, .finding .q { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+  .finding .lawtext { font-size: .82rem; color: #444; background: #f7f7f9;
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
+  .finding .btns { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .more-q, .detail-b { background: none; color: var(--brand); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 10px; font-size: .8rem; }
+  .more-q[disabled], .detail-b[disabled] { color: var(--muted); }
+  .detailbox { margin-top: 10px; padding: 12px 14px; background: #eef4ff;
+    border: 1px solid #d3e2fb; border-radius: 10px; font-size: .9rem; white-space: pre-wrap; }
+  .detailbox .src { display: block; margin-top: 8px; font-size: .8rem; color: var(--muted); }
+  .fontctl { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
+  .fontctl input[type=range] { flex: 1; max-width: 220px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .muted { color: var(--muted); font-size: .85rem; }
+  .err { color: var(--high); font-weight: 600; }
+
+  /* 진행 표시 */
+  #loading { display: none; }
+  #loading.on { display: block; }
+  .stage { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--brand);
+    animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+  .pbar { height: 8px; background: var(--line); border-radius: 6px; overflow: hidden; margin: 12px 0 6px; }
+  .pbar > i { display: block; height: 100%; background: var(--brand); width: 0; transition: width .4s ease; }
+  .pcount { font-size: .82rem; color: var(--muted); }
+  .tidbit { margin-top: 16px; padding: 14px 16px; background: #f0f4fb; border-radius: 10px;
+    border: 1px solid #dbe6fb; font-size: .9rem; min-height: 3.4em;
+    transition: opacity .35s ease; }
+  .tidbit b { color: var(--brand); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>약관 레이더</h1>
+  <p class="sub">보험 약관 PDF를 올리면 소비자에게 불리한 조항과 과도한 개인정보 조항을 찾아 드립니다.</p>
+
+  <div class="card" id="form">
+    <div class="row">
+      <div>
+        <label for="file">약관 PDF</label>
+        <input type="file" id="file" accept="application/pdf" />
+      </div>
+      <div>
+        <label for="audience">설명 눈높이</label>
+        <select id="audience">
+          <option>일반</option>
+          <option>사회초년생</option>
+          <option>고령자</option>
+        </select>
+      </div>
+      <div style="flex:0">
+        <button id="go">분석</button>
+      </div>
+    </div>
+    <div class="fontctl" style="margin-top:12px">
+      <span>글씨 크기</span>
+      <input type="range" id="fontRange" min="90" max="170" step="5" value="100" />
+      <span id="fontPct">100%</span>
+    </div>
+    <p class="muted" style="margin-top:10px" id="samples"></p>
+    <p id="msg" class="muted"></p>
+  </div>
+
+  <div class="card" id="loading">
+    <div class="stage"><span class="dot"></span><span id="stageText">분석 준비 중</span></div>
+    <div class="pbar"><i id="pbarFill"></i></div>
+    <div class="pcount" id="pcount"></div>
+    <div class="tidbit" id="tidbit"></div>
+  </div>
+
+  <div id="result" style="display:none">
+    <div class="card">
+      <div class="toolbar">
+        <strong id="docname"></strong>
+        <span class="muted" id="clausecount"></span>
+      </div>
+      <div>소비자 유의도 <span class="score-big" id="overall"></span><span class="muted">/100</span></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><strong>발견된 조항</strong><span class="muted" id="fcount"></span></div>
+      <div id="findings"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+
+// 글씨 크기 (html font-size % → rem 전체 스케일). localStorage 유지.
+const fontRange = $("#fontRange");
+function applyFont(pct) {
+  document.documentElement.style.fontSize = pct + "%";
+  $("#fontPct").textContent = pct + "%";
+  fontRange.value = pct;
+}
+try {
+  const saved = parseInt(localStorage.getItem("yg_font") || "100", 10);
+  if (saved >= 90 && saved <= 170) applyFont(saved);
+} catch {}
+fontRange.addEventListener("input", (e) => {
+  const pct = +e.target.value;
+  applyFont(pct);
+  try { localStorage.setItem("yg_font", String(pct)); } catch {}
+});
+
+let LAST_REPORT = null;
+
+const TIDBITS = [
+  "손해보험 9개사 기준 보험금 <b>부지급 사유의 85.2%</b>가 '약관상 면·부책'이었습니다 (2025년, 소비자주권시민회의 분석).",
+  "불완전판매 유형: <b>중요사항 누락·과장 설명</b>, 약관·상품설명서 미교부, 자필서명 대필.",
+  "<b>개인정보보호법 제22조</b> — 선택 항목은 동의를 거부해도 서비스(가입·보험금 지급)가 제공되어야 합니다.",
+  "'<b>무·저해지 환급형</b>'은 납입 기간 중 해지하면 환급금이 0이거나 매우 적을 수 있습니다.",
+  "<b>갱신형 보험료</b>는 나이·위험률 변동으로 인상 상한 없이 오를 수 있습니다. 예시표만 보고 판단하면 위험합니다.",
+  "고지의무를 위반했더라도, 위반 사실과 보험금 지급사유가 <b>인과관계가 없으면</b> 보험금을 받을 수 있습니다.",
+  "개인정보 <b>제3자 제공</b> 항목에 '보험관련단체 등'처럼 범위가 열려 있으면 어디까지 넘어가는지 확인이 필요합니다.",
+  "이 도구는 약관 원문을 그대로 인용하고 <b>표준약관·법령 근거</b>와 대조해 설명합니다.",
+];
+
+let tidbitTimer = null;
+function startTidbits() {
+  const el = $("#tidbit");
+  let i = Math.floor(Math.random() * TIDBITS.length);
+  el.innerHTML = TIDBITS[i];
+  clearInterval(tidbitTimer);
+  tidbitTimer = setInterval(() => {
+    el.style.opacity = 0;
+    setTimeout(() => {
+      i = (i + 1) % TIDBITS.length;
+      el.innerHTML = TIDBITS[i];
+      el.style.opacity = 1;
+    }, 350);
+  }, 4200);
+}
+function stopTidbits() { clearInterval(tidbitTimer); tidbitTimer = null; }
+
+fetch("/api/samples").then(r => r.json()).then(d => {
+  if (!d.samples?.length) return;
+  const span = $("#samples");
+  span.textContent = "샘플: ";
+  d.samples.forEach(name => {
+    const a = document.createElement("a");
+    a.href = "#"; a.textContent = name; a.style.marginRight = "8px";
+    a.onclick = (e) => { e.preventDefault(); runSample(name); };
+    span.appendChild(a);
+  });
+});
+
+$("#go").addEventListener("click", () => {
+  const f = $("#file").files[0];
+  if (!f) { setErr("PDF를 선택하세요."); return; }
+  const fd = new FormData();
+  fd.append("file", f);
+  fd.append("audience", $("#audience").value);
+  stream("/api/analyze-stream", fd);
+});
+
+function runSample(name) {
+  const fd = new FormData();
+  fd.append("name", name);
+  fd.append("audience", $("#audience").value);
+  stream("/api/analyze-sample-stream", fd);
+}
+
+function setErr(t) { $("#msg").innerHTML = `<span class="err">${t}</span>`; }
+function setStage(t) { $("#stageText").textContent = t; }
+function setProgress(done, total) {
+  $("#pbarFill").style.width = total ? `${Math.round(done / total * 100)}%` : "0";
+  $("#pcount").textContent = total ? `구간 ${done} / ${total} 검토 완료` : "";
+}
+
+async function stream(url, fd) {
+  $("#go").disabled = true;
+  $("#msg").innerHTML = "";
+  $("#result").style.display = "none";
+  $("#loading").classList.add("on");
+  setStage("분석 준비 중"); setProgress(0, 0); startTidbits();
+
+  try {
+    const res = await fetch(url, { method: "POST", body: fd });
+    if (!res.ok || !res.body) {
+      let detail = "요청 실패";
+      try { detail = (await res.json()).detail || detail; } catch {}
+      throw new Error(detail);
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split("\n\n");
+      buf = parts.pop();
+      for (const part of parts) {
+        const line = part.split("\n").find(l => l.startsWith("data: "));
+        if (!line) continue;
+        handleEvent(JSON.parse(line.slice(6)));
+      }
+    }
+  } catch (e) {
+    setErr(e.message || "오류");
+  } finally {
+    $("#loading").classList.remove("on");
+    stopTidbits();
+    $("#go").disabled = false;
+  }
+}
+
+function handleEvent(ev) {
+  if (ev.type === "stage") setStage(ev.label);
+  else if (ev.type === "progress") { setStage("조항 검토 중"); setProgress(ev.done, ev.total); }
+  else if (ev.type === "error") setErr(ev.detail || "분석 실패");
+  else if (ev.type === "done") { setProgress(1, 1); render(ev.report); }
+}
+
+function render(rep) {
+  LAST_REPORT = rep;
+  $("#result").style.display = "block";
+  $("#docname").textContent = rep.doc_name;
+  $("#clausecount").textContent =
+    `${rep.pages}페이지 · ${rep.windows}개 구간 분석 · 눈높이 ${rep.audience}`;
+  $("#overall").textContent = rep.overall_score;
+
+  $("#bars").innerHTML = rep.category_scores.map(c => `
+    <div class="bar-row">
+      <span>${c.label}</span>
+      <span class="bar"><i style="width:${c.score}%"></i></span>
+      <span>${c.score}</span>
+    </div>`).join("");
+
+  $("#fcount").textContent = `${rep.findings.length}건`;
+  const order = { "높음": 0, "중간": 1, "낮음": 2 };
+  const idxSorted = rep.findings
+    .map((f, i) => [f, i])
+    .sort((a, b) => (order[a[0].risk] ?? 3) - (order[b[0].risk] ?? 3));
+  $("#findings").innerHTML = idxSorted.map(([f, i]) => `
+    <div class="finding">
+      <div class="fhead">
+        <span class="tag t-${f.risk}">${f.risk}</span>
+        <span class="cref">${escapeHtml(f.clause_ref)}</span>
+        <span class="muted">${f.category}${f.page ? ` · p${f.page}` : ""}</span>
+      </div>
+      <h4>${escapeHtml(f.summary)}</h4>
+      ${f.quote ? `<blockquote class="quote">${escapeHtml(f.quote)}</blockquote>` : ""}
+      <div class="plain">${escapeHtml(f.plain)}</div>
+      ${f.evidence?.length ? `<div class="ev">근거: ${f.evidence.map(e =>
+        `${escapeHtml(e.source)} — ${escapeHtml(e.note)}`).join(" / ")}</div>` : ""}
+      ${f.evidence?.filter(e => e.law_text).map(e =>
+        `<div class="lawtext">${escapeHtml(e.law_text)}</div>`).join("") || ""}
+      <div class="q" data-qbox="${i}">${
+        f.questions?.length ? "확인 질문: " + f.questions.map(escapeHtml).join(" · ") : ""
+      }</div>
+      <div class="btns">
+        <button class="detail-b" data-idx="${i}">근거 자세히</button>
+        <button class="more-q" data-idx="${i}">＋ 질문 더 보기</button>
+      </div>
+      <div class="detailbox" data-detail="${i}" style="display:none"></div>
+    </div>`).join("");
+}
+
+$("#findings").addEventListener("click", async (e) => {
+  const moreBtn = e.target.closest(".more-q");
+  const detailBtn = e.target.closest(".detail-b");
+  if (!LAST_REPORT || (!moreBtn && !detailBtn)) return;
+
+  if (moreBtn) {
+    const f = LAST_REPORT.findings[+moreBtn.dataset.idx];
+    moreBtn.disabled = true; moreBtn.textContent = "질문 생성 중…";
+    try {
+      const r = await fetch("/api/followup-questions", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clause_ref: f.clause_ref, quote: f.quote, summary: f.summary,
+          existing: f.questions || [], audience: LAST_REPORT.audience,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || "실패");
+      f.questions = [...(f.questions || []), ...d.questions];
+      $(`[data-qbox="${moreBtn.dataset.idx}"]`).textContent =
+        "확인 질문: " + f.questions.join(" · ");
+      moreBtn.remove();
+    } catch {
+      moreBtn.disabled = false; moreBtn.textContent = "＋ 질문 더 보기 (다시)";
+    }
+    return;
+  }
+
+  const idx = detailBtn.dataset.idx;
+  const box = $(`[data-detail="${idx}"]`);
+  if (box.dataset.loaded) { box.style.display = box.style.display === "none" ? "block" : "none"; return; }
+  const f = LAST_REPORT.findings[+idx];
+  detailBtn.disabled = true; detailBtn.textContent = "불러오는 중…";
+  try {
+    const r = await fetch("/api/finding-detail", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clause_ref: f.clause_ref, quote: f.quote, summary: f.summary,
+        evidence_sources: (f.evidence || []).map(e => e.source),
+        audience: LAST_REPORT.audience,
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || "실패");
+    box.innerHTML = escapeHtml(d.detail) +
+      (d.sources?.length ? `<span class="src">참고 조문: ${d.sources.map(escapeHtml).join(" / ")}</span>` : "");
+    box.style.display = "block";
+    box.dataset.loaded = "1";
+    detailBtn.textContent = "근거 접기";
+    detailBtn.disabled = false;
+  } catch {
+    detailBtn.disabled = false; detailBtn.textContent = "근거 자세히 (다시)";
+  }
+});
+
+function escapeHtml(s) {
+  return (s ?? "").replace(/[&<>"]/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# secrets — never commit
+**/.env
+.env
+
+# OS
+.DS_Store
+
+# runtime FAISS index (built locally, not versioned)
+app/data/index/*
+!app/data/index/.gitkeep
+
+# scratch
+*.log

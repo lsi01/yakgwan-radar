@@ -1,0 +1,23 @@
+[project]
+name = "yakgwan-reader"
+version = "0.1.0"
+description = "약관 레이더 — 소비자 불리 조항 + 개인정보 조항 탐지기"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "python-multipart>=0.0.9",
+    "pdfplumber>=0.11",
+    "anthropic>=0.40",
+    "pydantic>=2.9",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+rag = [
+    "faiss-cpu>=1.9",
+    "numpy>=2.0",
+]
+
+[tool.uv]
+package = false
