@@ -1,0 +1,24 @@
+# Render 배포 설정 (무료 웹 서비스)
+# 대시보드에서 New + > Blueprint 로 이 레포를 연결하면 자동 인식.
+# ANTHROPIC_API_KEY 는 대시보드에서 직접 입력(여기 커밋 금지).
+services:
+  - type: web
+    name: yakgwan-radar
+    runtime: python
+    plan: free
+    rootDir: app
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.9"
+      - key: MODEL
+        value: claude-sonnet-5
+      - key: MAX_WINDOWS
+        value: "10"
+      - key: DAILY_ANALYZE_LIMIT
+        value: "40"
+      - key: ANTHROPIC_API_KEY
+        sync: false   # 대시보드에서 수동 입력

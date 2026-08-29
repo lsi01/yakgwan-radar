@@ -21,5 +21,7 @@ MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))
 MAX_WINDOWS = int(os.getenv("MAX_WINDOWS", "10"))
 # true 면 캐시를 무시하고 매번 새로 분석
 NO_CACHE = os.getenv("NO_CACHE", "").lower() in ("1", "true", "yes")
+# 하루 분석 요청 상한 (API 비용 폭주 방지). 0 = 무제한. 캐시 히트는 카운트 안 함.
+DAILY_ANALYZE_LIMIT = int(os.getenv("DAILY_ANALYZE_LIMIT", "0"))
 
 HAS_API_KEY = bool(os.getenv("ANTHROPIC_API_KEY"))

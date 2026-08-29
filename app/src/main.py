@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel
 
-from . import cache
+from . import cache, ratelimit
 from .analyzer import analyze_document, deep_dive, more_questions
 from .config import APP_DIR, HAS_API_KEY, MAX_UPLOAD_MB, MODEL, SAMPLES_DIR
 from .parsing import extract_pdf
@@ -72,12 +72,17 @@ def _finalize(pdf, findings, n_windows, doc_name, audience, ckey) -> Report:
     return report
 
 
+_LIMIT_MSG = "오늘 분석 요청 한도에 도달했습니다. 내일 다시 시도하거나 내장 샘플을 이용해 주세요."
+
+
 async def _build_report(data: bytes, doc_name: str, audience: str) -> Report:
     ckey = cache.key_for(data, audience)
     cached = cache.load(ckey)
     if cached is not None:
         cached.doc_name = doc_name
         return cached
+    if not ratelimit.consume():
+        raise HTTPException(429, _LIMIT_MSG)
     pdf = _extract(data)
     findings, n = await analyze_document(pdf, audience)
     return _finalize(pdf, findings, n, doc_name, audience, ckey)
@@ -99,6 +104,10 @@ async def _stream_report(data: bytes, doc_name: str, audience: str) -> AsyncIter
             cached.doc_name = doc_name
             yield _sse({"type": "stage", "label": "저장된 분석 결과 불러오는 중"})
             yield _sse({"type": "done", "report": cached.model_dump()})
+            return
+
+        if not ratelimit.consume():
+            yield _sse({"type": "error", "detail": _LIMIT_MSG})
             return
 
         yield _sse({"type": "stage", "label": "약관 텍스트 추출 중"})
