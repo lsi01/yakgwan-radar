@@ -341,7 +341,7 @@ $("#findings").addEventListener("click", async (e) => {
       body: JSON.stringify({
         clause_ref: f.clause_ref, quote: f.quote, summary: f.summary,
         evidence_sources: (f.evidence || []).map(e => e.source),
-        audience: LAST_REPORT.audience,
+        audience: LAST_REPORT.audience, analyzer: f.analyzer,
       }),
     });
     const d = await r.json();

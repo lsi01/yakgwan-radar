@@ -220,13 +220,14 @@ class DetailReq(BaseModel):
     summary: str = ""
     evidence_sources: list[str] = []
     audience: str = "일반"
+    analyzer: str | None = None  # "A"|"B" — 근거 검색을 같은 도메인 법률로 한정
 
 
 @app.post("/api/finding-detail")
 async def finding_detail(req: DetailReq) -> dict:
     if not HAS_API_KEY:
         raise HTTPException(500, "ANTHROPIC_API_KEY 가 설정되지 않았습니다.")
-    laws = detail_sources(req.clause_ref, req.summary, req.evidence_sources)
+    laws = detail_sources(req.clause_ref, req.summary, req.evidence_sources, req.analyzer)
     text = await deep_dive(req.clause_ref, req.quote, req.summary, laws, req.audience)
     return {"detail": text, "sources": laws}
 

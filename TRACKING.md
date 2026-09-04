@@ -92,10 +92,12 @@
 - [x] 프론트-백 연결, 업로드 크기 제한, 에러 핸들링 (파싱 실패/LLM 타임아웃/window 격리)
 - [x] 데모용 샘플 약관 사전 분석 캐시 동봉 (`app/data/cache/…_일반_…_v2.json`) → 심사 시 즉시 로드 + API 비용 0
 - [x] **비공개 GitHub 레포 생성 + 푸시**: https://github.com/lsi01/yakgwan-radar (main). `.env`·`.venv` 제외 확인
-- [ ] **sleep 없는 호스트**에 배포 (Railway / Cloudtype 등) — 무료 슬립형 금지
-- [ ] 배포 시 환경변수: `ANTHROPIC_API_KEY`, `MODEL=claude-sonnet-5` (+선택 접속 비밀번호)
-- [ ] 배포 URL → 기획서·기능명세서에 반영
-- [ ] 9/7~9/11 접속 모니터링 방법 정해두기
+- [x] 배포 설정 파일: `app/requirements.txt`, `render.yaml`, 일일 한도(`ratelimit.py`, `DAILY_ANALYZE_LIMIT`)
+- [x] 계획: **1) Render 무료 + UptimeRobot 핑** → 2) 9/6 확인 후 불안하면 Railway $5로 폴백. 둘 다 같은 레포에서 배포
+- [x] **Render 배포 실행 + 확인**: https://yakgwan-radar.onrender.com — Live, `/api/health` 정상(`api_key_loaded: true`), 샘플 약관 E2E 분석(22건 발견) 정상 작동 확인
+- [x] UptimeRobot 무료 계정 → `/api/health` 5분 간격 모니터 설정 완료 (이메일 알림 lsi1004di@gmail.com)
+- [x] 배포 URL → 기획서·기능명세서에 반영
+- [ ] 9/6 접속·응답 확인, 필요 시 Railway 전환
 
 ### W7. 기획서 (첨부1 양식)
 - [x] **초안 작성 → `docs/기획서_초안.md`** (7개 항목 전부, 서비스명 후보 3개, 차별성·AI역할·확장 표 포함)
@@ -157,3 +159,4 @@
 - 8/28: **기획서 초안 + 양식 재현 .docx 완성.** 명칭 = 약관 레이더 확정(앱 전체 반영). 85.2% 통계 출처 검증. 맥이라 hwpx 편집 불가 → docx를 Google Docs로 열어 팀명 채우고 PDF 변환하는 경로.
 - 8/28: **기획서·기능명세서 완성도 보강.** 기획서: 금감원 민원 통계·"판매vs청구시점" 논리·대회문구 매핑·유사서비스 대비 차별점. 기능명세서: `docs/기능명세서_초안.md` + docx 신규(5항목, 표4개).
 - 8/28: **비공개 GitHub 레포 생성**: github.com/lsi01/yakgwan-radar (main, private). 샘플 PDF + 분석결과 캐시 동봉. **다음: W6 배포(sleep 없는 호스트) → URL을 두 문서에 반영.**
+- 9/4: **Render 배포 완료.** Blueprint로 yakgwan-radar 웹서비스 생성, `ANTHROPIC_API_KEY` 대시보드 입력, `/api/health` + 프론트 + 샘플 약관 E2E 분석까지 정상 확인. URL = `https://yakgwan-radar.onrender.com`. **다음: UptimeRobot 슬립 방지 설정 → 9/6 재확인 → 기획서·기능명세서 URL 반영(진행) → 팀명/성명 기재 → PDF 변환 → 제출.**
