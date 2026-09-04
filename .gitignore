@@ -17,3 +17,18 @@ app/data/index/*
 
 # scratch
 *.log
+
+# QA용으로만 받은 타사 보험약관 PDF — 저작권 이슈로 저장소엔 안 올림.
+# 정확한 출처/재현 방법은 TRACKING.md 참고. samsungfire_silson.pdf는 앱이
+# 실제로 참조하는 데모 샘플이라 예외적으로 계속 커밋함.
+app/samples/hyundai_실손_Hi2601.pdf
+app/samples/hyundai_암보험_Hi2301.pdf
+app/samples/kb_운전자보험_2308.pdf
+app/samples/woori_종신보험_2601.pdf
+
+# 위 QA용 PDF들의 분석 캐시. 소스 PDF가 저장소에 없으니 같이 안 올림
+# (samsungfire 캐시는 앱이 실제 참조하는 데모용이라 예외적으로 계속 커밋).
+app/data/cache/9621f365766ede5c_*.json
+app/data/cache/ad7aad87e98454d8_*.json
+app/data/cache/dd8c3a8dec135429_*.json
+app/data/cache/e877e6a495bfd700_*.json
